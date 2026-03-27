@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Ambiental - PaaS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #28a745;
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+        }
+
+        body { 
+            background: radial-gradient(circle at center, #1e293b 0%, var(--bg-dark) 100%);
+            color: white; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Diseño Glassmorphism para la tarjeta */
+        .dashboard-card { 
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 20px; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            padding: 40px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            transition: box-shadow 0.4s ease;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .dashboard-card:hover {
+            box-shadow: 0 8px 32px 0 rgba(0, 210, 255, 0.15);
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+
+        /* Contenedor del Anillo (Gauge) */
+        .gauge-container {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 0 auto 30px auto;
+        }
+
+        svg.circular-chart {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            max-height: 250px;
+        }
+
+        .circle-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 3;
+        }
+
+        .circle {
+            fill: none;
+            stroke-width: 3;
+            stroke-linecap: round;
+            transition: stroke-dasharray 1.5s cubic-bezier(0.1, 0.5, 0.1, 1), stroke 1s ease;
+            filter: drop-shadow(0 0 8px var(--primary-color));
+        }
+
+        /* Valor central del círculo */
+        .temp-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            width: 100%;
+        }
+
+        #temp-val { 
+            font-size: 4rem; 
+            font-weight: 700;
+            line-height: 1;
+            text-shadow: 0 0 20px rgba(0, 210, 255, 0.5);
+            transition: color 1s ease, text-shadow 1s ease;
+        }
+
+        .unit {
+            font-size: 1.5rem;
+            vertical-align: super;
+            color: #cbd5e1;
+        }
+
+        #status {
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Botón personalizado */
+        .btn-custom {
+            background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%);
+            border: none;
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: white;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 198, 255, 0.4);
+            color: white;
+        }
+
+        .btn-custom:disabled {
+            background: #475569;
+            transform: none;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* Animación de pulso para el estado */
+        @keyframes pulse-dot {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(56, 189, 248, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #38bdf8;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse-dot 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container text-center">
+        <div class="dashboard-card shadow-lg mx-auto">
+            <h1 class="header-title"><i class="fa-solid fa-server me-2"></i>Monitoreo Ambiental</h1>
+            <p class="subtitle">Infraestructura Render & Automatización</p>
+            
+            <div class="gauge-container">
+                <svg viewBox="0 0 36 36" class="circular-chart">
+                    <path class="circle-bg"
+                        d="M18 2.0845
+                        a 15.9155 15.9155 0 0 1 0 31.831
+                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path class="circle" id="temp-gauge" stroke="#00d2ff" stroke-dasharray="0, 100"
+                        d="M18 2.0845
+                        a 15.9155 15.9155 0 0 1 0 31.831
+                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                </svg>
+                <div class="temp-display">
+                    <span id="temp-val">--</span><span class="unit">°C</span>
+                </div>
+            </div>
+
+            <div id="status" class="text-info mb-4">
+                <span class="status-dot"></span>
+                <span id="status-text">Esperando datos del sensor...</span>
+            </div>
+            
+            <button id="refresh-btn" class="btn btn-custom" onclick="fetchData()">
+                <i class="fa-solid fa-rotate me-2"></i>Actualizar Sensor
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentTemp = 0;
+
+        // Función para animar el contador de números suavemente
+        function animateValue(obj, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                // Calcula el valor actual con un decimal
+                const currentVal = (progress * (end - start) + start).toFixed(1);
+                obj.innerHTML = currentVal;
+                
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    obj.innerHTML = end.toFixed(1); // Asegurar el valor final exacto
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Función para determinar el color según la temperatura
+        function updateColors(temp) {
+            const gauge = document.getElementById('temp-gauge');
+            const tempText = document.getElementById('temp-val');
+            const statusDot = document.querySelector('.status-dot');
+            
+            let color = "";
+            let shadowColor = "";
+
+            if (temp < 15) {
+                color = "#38bdf8"; // Azul - Frío
+                shadowColor = "rgba(56, 189, 248, 0.5)";
+            } else if (temp >= 15 && temp <= 28) {
+                color = "#4ade80"; // Verde - Óptimo
+                shadowColor = "rgba(74, 222, 128, 0.5)";
+            } else if (temp > 28 && temp <= 35) {
+                color = "#fb923c"; // Naranja - Caliente
+                shadowColor = "rgba(251, 146, 60, 0.5)";
+            } else {
+                color = "#ef4444"; // Rojo - Crítico
+                shadowColor = "rgba(239, 68, 68, 0.5)";
+            }
+
+            // Aplicar colores y brillos
+            gauge.style.stroke = color;
+            gauge.style.filter = `drop-shadow(0 0 8px ${color})`;
+            tempText.style.color = color;
+            tempText.style.textShadow = `0 0 20px ${shadowColor}`;
+            statusDot.style.backgroundColor = color;
+        }
+
+        // Simulación de conexión a Webhook (Make.com) / API
+        function fetchData() {
+            const btn = document.getElementById('refresh-btn');
+            const statusText = document.getElementById('status-text');
+            const gauge = document.getElementById('temp-gauge');
+            const tempVal = document.getElementById('temp-val');
+
+            // Estado de carga
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-2"></i>Consultando Nube...';
+            statusText.textContent = "Obteniendo datos de telemetría...";
+            statusText.className = "text-warning";
+
+            // Simular un retraso de red de 1.5 segundos (como si consultara a Make.com)
+            setTimeout(() => {
+                // Generar temperatura aleatoria entre 10 y 45 para la demostración
+                const newTemp = Math.random() * (40 - 10) + 10;
+                
+                // Animar el número
+                animateValue(tempVal, currentTemp, newTemp, 1500);
+                currentTemp = newTemp; // Guardar para la próxima animación
+
+                // Calcular el porcentaje para el SVG Gauge (0-50°C como rango)
+                const percentage = Math.min((newTemp / 50) * 100, 100);
+                gauge.style.strokeDasharray = `${percentage}, 100`;
+
+                // Actualizar colores basados en el nuevo valor
+                updateColors(newTemp);
+
+                // Restaurar UI
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-rotate me-2"></i>Actualizar Sensor';
+                statusText.textContent = "Sensor en línea - Última lectura exitosa";
+                statusText.className = "text-success";
+
+            }, 1500);
+        }
+
+        // Cargar un dato inicial al abrir la página
+        window.onload = () => {
+            setTimeout(fetchData, 500);
+        };
+    </script>
+</body>
+</html>
